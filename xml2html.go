@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	htmlHeader = `<!DOCTYPE html>
+	htmlHeaderTemplate = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Converted SVG</title>
+    <title>%s</title>
 </head>
 <body>
 `
@@ -30,9 +30,11 @@ const (
 
 func main() {
 	decode := flag.Bool("d", false, "Decode mode")
+	title := flag.String("t", "Converted SVG", "Title for the HTML page")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s [-d]\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  -d    Decode mode (HTML to SVG). Default is encode mode (SVG to HTML).\n")
+		fmt.Fprintf(os.Stderr, "Usage: %s [-d] [-t title]\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  -d         Decode mode (HTML to SVG). Default is encode mode (SVG to HTML).\n")
+		fmt.Fprintf(os.Stderr, "  -t title   Set the title for the HTML page (default: \"Converted SVG\")\n")
 		fmt.Fprintf(os.Stderr, "Input is read from stdin and output is written to stdout.\n")
 	}
 	flag.Parse()
@@ -41,7 +43,7 @@ func main() {
 	if *decode {
 		err = decodeHTML(os.Stdin, os.Stdout)
 	} else {
-		err = encodeXML(os.Stdin, os.Stdout)
+		err = encodeXML(os.Stdin, os.Stdout, *title)
 	}
 
 	if err != nil {
@@ -50,7 +52,8 @@ func main() {
 	}
 }
 
-func encodeXML(r io.Reader, w io.Writer) error {
+func encodeXML(r io.Reader, w io.Writer, title string) error {
+	htmlHeader := fmt.Sprintf(htmlHeaderTemplate, title)
 	_, err := fmt.Fprint(w, htmlHeader)
 	if err != nil {
 		return fmt.Errorf("error writing HTML header: %w", err)
@@ -110,3 +113,4 @@ func decodeHTML(r io.Reader, w io.Writer) error {
 
 	return nil
 }
+
